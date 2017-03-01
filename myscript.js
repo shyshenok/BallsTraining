@@ -64,6 +64,34 @@ Ball.prototype.step = function(width, height) {
     this.position.add(this.speed);
 }
 
+function Square(position, speed, color, height, width) {
+    ColorMoveableObject.apply(this, arguments);
+    this.heightRect = height;
+    this.widthRect = width;
+}
+
+Square.prototype = Object.create(ColorMoveableObject.prototype);
+Square.prototype.constructor = Square;
+
+Square.prototype.draw = function(context) {
+    context.beginPath();
+    context.rect(this.position.x, this.position.y, this.heightRect, this.widthRect);
+    context.fillStyle = this.color;
+    context.fill();
+    context.closePath();
+}
+
+Square.prototype.step = function(width, height) {
+    if(this.position.x + this.speed.x > width - this.widthRect || this.position.x + this.speed.x < this.widthRect) {
+        this.speed.x = -this.speed.x;
+    }
+    if(this.position.y + this.speed.y > height - this.heightRect || this.position.y + this.speed.y < this.heightRect) {
+        this.speed.y = -this.speed.y;
+    }
+    
+    this.position.add(this.speed);
+}
+
 
 var firstBall = new Ball(
     new Vector(canvas.width/2, canvas.height-30),
@@ -72,18 +100,25 @@ var firstBall = new Ball(
     ballRadius
 );
 
-
+var firstSquare = new Square(
+    new Vector(canvas.width/2, canvas.height/2),
+    new Vector(3, -3),
+    "00fff00",
+    heightRect,
+    widthRect
+);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // draw balls
     firstBall.draw(ctx);
-    console.log(firstBall);
+    firstSquare.draw(ctx);
 
 
     // update balls' position
     firstBall.step(canvas.width, canvas.height);
+    firstSquare.step(canvas.width, canvas.height);
 
 
 }
