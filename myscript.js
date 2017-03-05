@@ -3,7 +3,7 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
 var ballRadius = 10;
-var heightRect = 15;
+var heightRect = 20;
 var widthRect = 20;
 
 function Vector(x, y) {
@@ -64,21 +64,28 @@ Ball.prototype.step = function(width, height) {
     this.position.add(this.speed);
 }
 
-function Square(position, speed, color, height, width) {
+function Square(position, speed, color,  width, height, rotatingSpeed) {
     ColorMoveableObject.apply(this, arguments);
-    this.heightRect = height;
     this.widthRect = width;
+    this.heightRect = height;
+    this.rotatingSpeed = rotatingSpeed;
+    this.angle = 45;
 }
 
 Square.prototype = Object.create(ColorMoveableObject.prototype);
 Square.prototype.constructor = Square;
 
 Square.prototype.draw = function(context) {
+    context.save();
     context.beginPath();
-    context.rect(this.position.x, this.position.y, this.heightRect, this.widthRect);
+    context.translate(this.position.x + this.widthRect / 2, this.position.y + this.heightRect / 2);
+    context.rotate(this.angle * Math.PI / 180);
+    
+    context.rect(-this.widthRect/2, -this.heightRect/2, this.widthRect, this.heightRect);
     context.fillStyle = this.color;
     context.fill();
     context.closePath();
+    context.restore();
 }
 
 Square.prototype.step = function(width, height) {
@@ -88,24 +95,26 @@ Square.prototype.step = function(width, height) {
     if(this.position.y + this.speed.y > height - this.heightRect || this.position.y + this.speed.y < this.heightRect) {
         this.speed.y = -this.speed.y;
     }
-    
-    this.position.add(this.speed);
-}
 
+    this.position.add(this.speed);
+
+    this.angle += this.rotatingSpeed;
+}
 
 var firstBall = new Ball(
     new Vector(canvas.width/2, canvas.height-30),
-    new Vector(2, -2),
+    new Vector(1, -1),
     "#00ff00",
     ballRadius
 );
 
 var firstSquare = new Square(
     new Vector(canvas.width/2, canvas.height/2),
-    new Vector(3, -3),
+    new Vector(1, -1),
     "00fff00",
+    widthRect,
     heightRect,
-    widthRect
+    1
 );
 
 function draw() {
