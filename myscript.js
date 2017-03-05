@@ -101,6 +101,37 @@ Square.prototype.step = function(width, height) {
     this.angle += this.rotatingSpeed;
 }
 
+function ImageObject (position, speed, src) {
+    MoveableObject.apply(this, arguments);
+    this.img = new Image();
+    this.img.onload = function() {
+        console.log("Img has been loaded");
+    }
+    console.log("loading has been started");
+    this.img.src = src;
+}
+
+ImageObject.prototype = Object.create(MoveableObject.prototype);
+ImageObject.prototype.constructor = ImageObject;
+
+ImageObject.prototype.draw = function(context) {
+
+    context.drawImage(this.img, this.position.x, this.position.y);
+
+}
+    
+ImageObject.prototype.step = function(width, height) {
+    if(this.position.x + this.speed.x > width || this.position.x + this.speed.x < 0) {
+        this.speed.x = -this.speed.x;
+    }
+    if(this.position.y + this.speed.y > height  || this.position.y + this.speed.y < 0) {
+        this.speed.y = -this.speed.y;
+    }
+
+    this.position.add(this.speed);
+}
+
+
 var firstBall = new Ball(
     new Vector(canvas.width/2, canvas.height-30),
     new Vector(1, -1),
@@ -117,17 +148,25 @@ var firstSquare = new Square(
     1
 );
 
+var firsImg = new ImageObject(
+    new Vector (canvas.width/2, canvas.height/2),
+    new Vector (1, -2),
+    "fish13.png"
+);
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // draw balls
     firstBall.draw(ctx);
     firstSquare.draw(ctx);
+    firsImg.draw(ctx);
 
 
     // update balls' position
     firstBall.step(canvas.width, canvas.height);
     firstSquare.step(canvas.width, canvas.height);
+    firsImg.step(canvas.width, canvas.height);
 
 
 }
