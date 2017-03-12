@@ -8,6 +8,29 @@ var ballRadius = 10;
 var heightRect = 20;
 var widthRect = 20;
 
+
+function animate(options) {
+
+  var start = performance.now();
+
+  requestAnimationFrame(function animate(time) {
+    // timeFraction от 0 до 1
+    var timeFraction = (time - start) / options.duration;
+    if (timeFraction > 1) timeFraction = 1;
+
+    // текущее состояние анимации
+    var progress = options.timing(timeFraction)
+
+    options.draw(progress);
+
+    if (timeFraction < 1) {
+      requestAnimationFrame(animate);
+    }
+
+  });
+}
+
+
 function Vector(x, y) {
     this.x = x;
     this.y = y;
@@ -70,7 +93,7 @@ function Square(position, speed, color,  sizeRect, rotatingSpeed) {
     ColorMoveableObject.apply(this, arguments);
     this.sizeRect = sizeRect;
     this.rotatingSpeed = rotatingSpeed;
-    this.angle = 45;
+    this.angle = 0;
 }
 
 Square.prototype = Object.create(ColorMoveableObject.prototype);
@@ -143,6 +166,12 @@ function bezier3 (p1, p2, p3) {
     }
 }
 
+function bezier3Der(p1, p2, p3) {
+    return function(t) {
+        return 2* (1 - t) *(p2 - p1) + 2* t * (p3 - p2);
+    }
+}
+
 function bezier4 (p1, p2, p3, p4) {
 
     return function(t) {
@@ -150,12 +179,25 @@ function bezier4 (p1, p2, p3, p4) {
     }
 }
 
+function bezier4Der (p1, p2, p3, p4) {
+
+    return function(t) {
+        return 3*Math.pow((1-t), 2) * (p2 - p1) + 6 * (1 - t) * t * (p3 - p2) + 3 * Math.pow(t, 2)* (p4 - p3);  
+    }
+}    
+
 var bez1x = bezier3(200, 400, 800);
 var bez1y = bezier3(400, 800, 400); 
+
+var bez1xD = bezier3Der(200, 400, 800);
+var bez1yD = bezier3Der(400, 800, 400);
 
 var bez2x = bezier4(100, 340, 600, 780);
 var bez2y = bezier4(90, 420, 200, 400);
 
+var bez2xD = bezier4Der(100, 340, 600, 780);
+var bez2yD = bezier4Der(90, 420, 200, 400);
+ 
 function drawLine (context, bezierX, bezierY, numPoints) {
     var step = 1 / numPoints;
     var t = 0;
@@ -185,6 +227,14 @@ var firstSquare = new Square(
     1
 );
 
+var secondSquare = new Square(
+    new Vector(canvas.width/2, canvas.height/2),
+    new Vector(1, -1),
+    "00ffff",
+    new Vector(30, 30),
+    0
+);
+
 var firsImg = new ImageObject(
     new Vector (canvas.width/2, canvas.height/2),
     new Vector (1, -2),
@@ -198,10 +248,10 @@ function draw() {
     // draw balls
     firstBall.draw(ctx);
     firstSquare.draw(ctx);
-    firsImg.draw(ctx);
+    // firsImg.draw(ctx);
 
     ctx.moveTo(200, 400);
-    drawLine(ctx, bez1x, bez1y, 200);
+    drawLine(ctx, bez1x, bez1y, 5);
     ctx.moveTo(100, 90);
     drawLine(ctx, bez2x, bez2y, 300);
 
@@ -209,10 +259,26 @@ function draw() {
     // update balls' position
     firstBall.step(canvas.width, canvas.height);
     firstSquare.step(canvas.width, canvas.height);
-    firsImg.step(canvas.width, canvas.height);
+    // firsImg.step(canvas.width, canvas.height);
 
 
 
 }
 
 setInterval(draw, 10);
+
+animate({
+    duration: 5000,
+    timing: function (timeFraction) {
+              return timeFraction;
+            },
+    draw: function(t) {
+        secondSquare.position.x = bez2x(t);
+        secondSquare.position.y = bez2y(t);
+
+        var k = bez2xD(t) / bez2yD(t);
+        secondSquare.angle = (Math.atan(k)* -180 / Math.PI);
+
+        secondSquare.draw(ctx);
+    } 
+});
